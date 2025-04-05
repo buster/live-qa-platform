@@ -3,7 +3,7 @@ import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { Server as SocketIOServer } from 'socket.io';
-import mongoose from 'mongoose';
+import Database from './config/database';
 
 // Load environment variables
 dotenv.config();
@@ -29,18 +29,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-const connectDB = async () => {
-  try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/live-qa-platform';
-    await mongoose.connect(mongoURI);
-    console.log('MongoDB connected');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-};
-
 // Routes
 app.get('/', (req, res) => {
   res.send('Live Q&A Platform API');
@@ -58,14 +46,18 @@ io.on('connection', (socket) => {
 // Start server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, async () => {
-  await connectDB();
+  // Connect to MongoDB using the Database class
+  await Database.getInstance().connect();
   console.log(`Server running on port ${PORT}`);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
-  server.close(() => process.exit(1));
+  // Disconnect from MongoDB before closing the server
+  Database.getInstance().disconnect().then(() => {
+    server.close(() => process.exit(1));
+  });
 });
 
 export { app, server, io };

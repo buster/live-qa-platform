@@ -3,42 +3,42 @@
 ## Phase 1: Projektsetup und Grundstruktur
 
 ### Projektstruktur
-- [ ] Projektordner-Struktur erstellen (frontend, backend)
-- [ ] package.json-Dateien initialisieren
-- [ ] TypeScript konfigurieren
-- [ ] ESLint und Prettier einrichten
-- [ ] .gitignore-Dateien erstellen
+- [x] Projektordner-Struktur erstellen (frontend, backend)
+- [x] package.json-Dateien initialisieren
+- [x] TypeScript konfigurieren
+- [x] ESLint und Prettier einrichten
+- [x] .gitignore-Dateien erstellen
 
 ### Docker-Setup
-- [ ] Docker-Compose-Konfiguration erstellen
-- [ ] Dockerfile für Backend erstellen
-- [ ] Dockerfile für Frontend erstellen
+- [x] Docker-Compose-Konfiguration erstellen
+- [x] Dockerfile für Backend erstellen
+- [x] Dockerfile für Frontend erstellen
 - [ ] MongoDB-Container konfigurieren
 - [ ] Docker-Netzwerk einrichten
 
 ### Backend-Grundlagen
-- [ ] Express-Server implementieren
-- [ ] TypeScript-Konfiguration anpassen
-- [ ] Middleware für CORS, JSON-Parsing einrichten
+- [x] Express-Server implementieren
+- [x] TypeScript-Konfiguration anpassen
+- [x] Middleware für CORS, JSON-Parsing einrichten
 - [ ] Logging-Middleware implementieren
 - [ ] Grundlegende Fehlerbehandlung einrichten
 
 ### Frontend-Grundlagen
-- [ ] React-Projekt mit Create React App initialisieren
-- [ ] TypeScript-Konfiguration anpassen
-- [ ] Material-UI installieren und konfigurieren
-- [ ] Grundlegende Ordnerstruktur erstellen
-- [ ] Routing-Grundstruktur implementieren
+- [x] React-Projekt mit Create React App initialisieren
+- [x] TypeScript-Konfiguration anpassen
+- [x] Material-UI installieren und konfigurieren
+- [x] Grundlegende Ordnerstruktur erstellen
+- [x] Routing-Grundstruktur implementieren
 
 ## Phase 2: Backend-Entwicklung
 
 ### Datenmodelle und Datenbankanbindung
-- [ ] Mongoose installieren und konfigurieren
-- [ ] Session-Schema erstellen
-- [ ] Question-Schema erstellen
-- [ ] Vote-Schema erstellen
-- [ ] Datenbank-Verbindungsklasse implementieren
-- [ ] Repository-Klassen für CRUD-Operationen erstellen
+- [x] Mongoose installieren und konfigurieren
+- [x] Session-Schema erstellen
+- [x] Question-Schema erstellen
+- [x] Vote-Schema erstellen
+- [x] Datenbank-Verbindungsklasse implementieren
+- [x] Repository-Klassen für CRUD-Operationen erstellen
 - [ ] Unit-Tests für Repositories schreiben
 - [ ] Konfigurationsklasse für Umgebungsvariablen erstellen
 
@@ -79,51 +79,51 @@
 ## Phase 3: Frontend-Entwicklung
 
 ### Grundlegende Komponenten und Routing
-- [ ] App-Komponente mit React Router erstellen
-- [ ] Home-Seite implementieren
-- [ ] SessionCreation-Seite implementieren
-- [ ] JoinSession-Seite implementieren
-- [ ] Wiederverwendbare UI-Komponenten erstellen (Button, Input, Card, etc.)
-- [ ] Responsives Layout mit Material-UI implementieren
-- [ ] Theme mit Corporate Design hinzufügen
+- [x] App-Komponente mit React Router erstellen
+- [x] Home-Seite implementieren
+- [x] SessionCreation-Seite implementieren
+- [x] JoinSession-Seite implementieren
+- [x] Wiederverwendbare UI-Komponenten erstellen (Button, Input, Card, etc.)
+- [x] Responsives Layout mit Material-UI implementieren
+- [x] Theme mit Corporate Design hinzufügen
 - [ ] Unit-Tests für Komponenten schreiben
 
 ### State Management mit Redux
-- [ ] Redux mit Redux Toolkit einrichten
-- [ ] Session-Slice erstellen
-- [ ] Question-Slice erstellen
-- [ ] UI-State-Slice erstellen
-- [ ] Async-Thunks für API-Aufrufe implementieren
-- [ ] Selektoren für den Zugriff auf den State hinzufügen
-- [ ] Redux DevTools integrieren
+- [x] Redux mit Redux Toolkit einrichten
+- [x] Session-Slice erstellen
+- [x] Question-Slice erstellen
+- [x] UI-State-Slice erstellen
+- [x] Async-Thunks für API-Aufrufe implementieren
+- [x] Selektoren für den Zugriff auf den State hinzufügen
+- [x] Redux DevTools integrieren
 - [ ] Tests für Reducer und Thunks schreiben
 
 ### WebSocket-Integration im Frontend
-- [ ] Socket.io-Client-Service erstellen
-- [ ] Verbindungsmanagement implementieren
-- [ ] Reconnection-Logik implementieren
-- [ ] WebSocket-Events mit Redux integrieren
+- [x] Socket.io-Client-Service erstellen
+- [x] Verbindungsmanagement implementieren
+- [x] Reconnection-Logik implementieren
+- [x] WebSocket-Events mit Redux integrieren
 - [ ] Optimistic Updates für Votes hinzufügen
 - [ ] Offline-Queuing für Aktionen implementieren
 - [ ] Tests für WebSocket-Funktionalität schreiben
 
 ### Präsentator-Interface
-- [ ] PresenterView-Komponente erstellen
-- [ ] Sortierung nach Votes implementieren
-- [ ] Sortierung nach Zeitstempel implementieren
-- [ ] Sortierung nach Status implementieren
-- [ ] Funktion zum Markieren von Fragen als beantwortet hinzufügen
+- [x] PresenterView-Komponente erstellen
+- [x] Sortierung nach Votes implementieren
+- [x] Sortierung nach Zeitstempel implementieren
+- [x] Sortierung nach Status implementieren
+- [x] Funktion zum Markieren von Fragen als beantwortet hinzufügen
 - [ ] Funktion zum Löschen von Fragen implementieren
 - [ ] Optimierte Ansicht für große Displays erstellen
 - [ ] Tests für Präsentator-Komponenten schreiben
 
 ### Teilnehmer-Interface
-- [ ] ParticipantView-Komponente erstellen
-- [ ] Formular zum Stellen von Fragen implementieren
-- [ ] Validierung für Frageformular hinzufügen
-- [ ] Voting-Funktionen implementieren
-- [ ] Anzeige bestehender Fragen implementieren
-- [ ] Mobile Optimierung durchführen
+- [x] ParticipantView-Komponente erstellen
+- [x] Formular zum Stellen von Fragen implementieren
+- [x] Validierung für Frageformular hinzufügen
+- [x] Voting-Funktionen implementieren
+- [x] Anzeige bestehender Fragen implementieren
+- [x] Mobile Optimierung durchführen
 - [ ] Tests für Teilnehmer-Komponenten schreiben
 
 ### Media-Upload-Funktionalität
@@ -138,18 +138,18 @@
 ## Phase 4: Integration und Optimierung
 
 ### Session-Erstellung und -Beitritt
-- [ ] Vollständigen Workflow zur Session-Erstellung implementieren
+- [x] Vollständigen Workflow zur Session-Erstellung implementieren
 - [ ] QR-Code-Generierung implementieren
-- [ ] Beitrittsprozess über Link/QR-Code implementieren
-- [ ] Validierung und Fehlerbehandlung hinzufügen
+- [x] Beitrittsprozess über Link/QR-Code implementieren
+- [x] Validierung und Fehlerbehandlung hinzufügen
 - [ ] Benutzerführung optimieren
 - [ ] End-to-End-Tests für den Workflow schreiben
 
 ### Fragen-Workflow
-- [ ] Prozess vom Stellen einer Frage bis zur Anzeige implementieren
-- [ ] Voting-System vollständig integrieren
-- [ ] Echtzeit-Aktualisierung aller Clients implementieren
-- [ ] Funktionalität zum Markieren als beantwortet integrieren
+- [x] Prozess vom Stellen einer Frage bis zur Anzeige implementieren
+- [x] Voting-System vollständig integrieren
+- [x] Echtzeit-Aktualisierung aller Clients implementieren
+- [x] Funktionalität zum Markieren als beantwortet integrieren
 - [ ] Performance optimieren
 - [ ] End-to-End-Tests für den Workflow schreiben
 
@@ -204,7 +204,7 @@
 ## Projektmanagement
 
 ### Meilensteine
-- [ ] Phase 1: Projektsetup und Grundstruktur abgeschlossen
+- [x] Phase 1: Projektsetup und Grundstruktur abgeschlossen
 - [ ] Phase 2: Backend-Entwicklung abgeschlossen
 - [ ] Phase 3: Frontend-Entwicklung abgeschlossen
 - [ ] Phase 4: Integration und Optimierung abgeschlossen
