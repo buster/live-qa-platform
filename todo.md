@@ -39,14 +39,14 @@
 - [x] Vote-Schema erstellen
 - [x] Datenbank-Verbindungsklasse implementieren
 - [x] Repository-Klassen für CRUD-Operationen erstellen
-- [ ] Unit-Tests für Repositories schreiben
+- [x] Unit-Tests für Repositories schreiben
 - [ ] Konfigurationsklasse für Umgebungsvariablen erstellen
 
 ### REST-API für Sessions
-- [ ] SessionController implementieren
-- [ ] Endpunkt zum Erstellen einer Session (POST /api/sessions)
-- [ ] Endpunkt zum Abrufen einer Session (GET /api/sessions/:id)
-- [ ] Endpunkt zum Beenden einer Session (DELETE /api/sessions/:id)
+- [x] SessionController implementieren
+- [x] Endpunkt zum Erstellen einer Session (POST /api/sessions)
+- [x] Endpunkt zum Abrufen einer Session (GET /api/sessions/:id)
+- [x] Endpunkt zum Beenden einer Session (DELETE /api/sessions/:id)
 - [ ] Middleware für Fehlerbehandlung implementieren
 - [ ] Validierung für Anfragen hinzufügen
 - [ ] JWT-Authentifizierung für Presenter implementieren
@@ -66,15 +66,15 @@
 - [ ] Tests für WebSocket-Funktionalität schreiben
 
 ### Fragen- und Voting-Logik
-- [ ] QuestionService implementieren
-- [ ] Methoden zum Erstellen von Fragen implementieren
-- [ ] Methoden zum Aktualisieren von Fragen implementieren
-- [ ] Methoden zum Löschen von Fragen implementieren
-- [ ] Voting-System implementieren
-- [ ] Logik zum Markieren von Fragen als beantwortet implementieren
+- [x] QuestionService implementieren
+- [x] Methoden zum Erstellen von Fragen implementieren
+- [x] Methoden zum Aktualisieren von Fragen implementieren
+- [x] Methoden zum Löschen von Fragen implementieren
+- [x] Voting-System implementieren
+- [x] Logik zum Markieren von Fragen als beantwortet implementieren
 - [ ] Media-Upload-Service implementieren
 - [ ] Validierung für Medien-Uploads hinzufügen
-- [ ] Unit-Tests für Services schreiben
+- [x] Unit-Tests für Services schreiben
 
 ## Phase 3: Frontend-Entwicklung
 
