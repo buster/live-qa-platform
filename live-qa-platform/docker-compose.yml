@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: live-qa-backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/live-qa-platform
+      - JWT_SECRET=development_secret_key
+      - JWT_EXPIRES_IN=1d
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - mongodb
+    networks:
+      - live-qa-network
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: live-qa-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:3001
+      - REACT_APP_SOCKET_URL=http://localhost:3001
+      - REACT_APP_ENABLE_MEDIA_UPLOAD=true
+      - REACT_APP_ENABLE_OFFLINE_MODE=true
+    depends_on:
+      - backend
+    networks:
+      - live-qa-network
+    command: npm start
+
+  mongodb:
+    image: mongo:latest
+    container_name: live-qa-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - live-qa-network
+
+networks:
+  live-qa-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
