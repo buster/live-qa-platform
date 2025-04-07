@@ -1,6 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { SessionState, CreateSessionResponse, JoinSessionResponse } from '../../types';
 
+// Define the interface for session creation parameters
+interface CreateSessionParams {
+  presenterName: string;
+  customCode?: string;
+}
+
 // Initial state
 const initialState: SessionState = {
   currentSession: null,
@@ -11,13 +17,19 @@ const initialState: SessionState = {
 // Async thunks
 export const createSession = createAsyncThunk(
   'session/create',
-  async (_, { rejectWithValue }) => {
+  async (params: CreateSessionParams | string, { rejectWithValue }) => {
     try {
+      // Handle both string and object parameters for backward compatibility
+      const requestData = typeof params === 'string' 
+        ? { presenterName: params } 
+        : params;
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -25,12 +37,24 @@ export const createSession = createAsyncThunk(
         return rejectWithValue(errorData.message || 'Failed to create session');
       }
 
-      const data: CreateSessionResponse = await response.json();
+      const responseData = await response.json();
       
-      // Store presenter token in localStorage
-      localStorage.setItem(`presenter_token_${data.session.id}`, data.presenterToken);
-      
-      return data.session;
+      // Check if the response has the expected structure
+      if (responseData.success && responseData.data) {
+        // Store presenter token in localStorage
+        localStorage.setItem(`presenter_token_${responseData.data._id}`, responseData.data.presenterToken);
+        
+        // Return the session data
+        return {
+          id: responseData.data._id,
+          url: responseData.data.url,
+          active: responseData.data.active,
+          createdAt: responseData.data.createdAt,
+          updatedAt: responseData.data.updatedAt
+        };
+      } else {
+        return rejectWithValue('Invalid response format from server');
+      }
     } catch (error) {
       return rejectWithValue('Network error: Could not create session');
     }
@@ -39,9 +63,10 @@ export const createSession = createAsyncThunk(
 
 export const joinSession = createAsyncThunk(
   'session/join',
-  async (sessionId: string, { rejectWithValue }) => {
+  async (sessionUrl: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions/${sessionId}`, {
+      // Use the session URL, not the ID
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions/${sessionUrl}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -50,11 +75,17 @@ export const joinSession = createAsyncThunk(
 
       if (!response.ok) {
         const errorData = await response.json();
-        return rejectWithValue(errorData.message || 'Failed to join session');
+        return rejectWithValue(errorData.message || errorData.error || 'Failed to join session');
       }
 
-      const data: JoinSessionResponse = await response.json();
-      return data.session;
+      const responseData = await response.json();
+      
+      // Check if the response has the expected structure
+      if (responseData.success && responseData.data) {
+        return responseData.data;
+      } else {
+        return rejectWithValue('Invalid response format from server');
+      }
     } catch (error) {
       return rejectWithValue('Network error: Could not join session');
     }
@@ -84,10 +115,16 @@ export const endSession = createAsyncThunk(
         return rejectWithValue(errorData.message || 'Failed to end session');
       }
 
-      // Remove presenter token from localStorage
-      localStorage.removeItem(`presenter_token_${sessionId}`);
+      const responseData = await response.json();
       
-      return sessionId;
+      // Check if the response has the expected structure
+      if (responseData.success) {
+        // Remove presenter token from localStorage
+        localStorage.removeItem(`presenter_token_${sessionId}`);
+        return sessionId;
+      } else {
+        return rejectWithValue('Invalid response format from server');
+      }
     } catch (error) {
       return rejectWithValue('Network error: Could not end session');
     }

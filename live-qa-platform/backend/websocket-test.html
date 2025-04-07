@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.8em;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        input, textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket Test Client</h1>
+        
+        <div class="card">
+            <h2>Connection</h2>
+            <div id="status" class="status disconnected">Disconnected</div>
+            <div>
+                <label for="serverUrl">Server URL:</label>
+                <input type="text" id="serverUrl" value="http://localhost:3002" />
+            </div>
+            <div style="margin-top: 10px;">
+                <button id="connectBtn">Connect</button>
+                <button id="disconnectBtn" disabled>Disconnect</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Echo Test</h2>
+            <div>
+                <label for="message">Message:</label>
+                <textarea id="message" rows="3" placeholder="Enter a message to echo"></textarea>
+            </div>
+            <div style="margin-top: 10px;">
+                <button id="sendBtn" disabled>Send Echo</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Log</h2>
+            <div class="log-container" id="log"></div>
+            <div style="margin-top: 10px;">
+                <button id="clearLogBtn">Clear Log</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script>
+        let socket;
+        
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const serverUrlEl = document.getElementById('serverUrl');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const messageEl = document.getElementById('message');
+        const sendBtn = document.getElementById('sendBtn');
+        const logEl = document.getElementById('log');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        
+        // Log function
+        function log(message, data = null) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const timestamp = document.createElement('span');
+            timestamp.className = 'timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString() + ' - ';
+            
+            const content = document.createElement('span');
+            content.textContent = message;
+            
+            entry.appendChild(timestamp);
+            entry.appendChild(content);
+            
+            if (data) {
+                const dataEl = document.createElement('pre');
+                dataEl.textContent = JSON.stringify(data, null, 2);
+                entry.appendChild(dataEl);
+            }
+            
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        // Connect to WebSocket server
+        connectBtn.addEventListener('click', () => {
+            const serverUrl = serverUrlEl.value;
+            
+            try {
+                socket = io(serverUrl, {
+                    transports: ['websocket']
+                });
+                
+                socket.on('connect', () => {
+                    statusEl.textContent = `Connected (ID: ${socket.id})`;
+                    statusEl.className = 'status connected';
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendBtn.disabled = false;
+                    log('Connected to server');
+                });
+                
+                socket.on('disconnect', () => {
+                    statusEl.textContent = 'Disconnected';
+                    statusEl.className = 'status disconnected';
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    sendBtn.disabled = true;
+                    log('Disconnected from server');
+                });
+                
+                socket.on('connect_error', (err) => {
+                    log('Connection error', err);
+                });
+                
+                socket.on('echo:response', (data) => {
+                    log('Received echo response', data);
+                });
+                
+                log('Connecting to server...');
+            } catch (err) {
+                log('Error creating socket', err);
+            }
+        });
+        
+        // Disconnect from WebSocket server
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        });
+        
+        // Send echo message
+        sendBtn.addEventListener('click', () => {
+            const message = messageEl.value;
+            if (message && socket && socket.connected) {
+                socket.emit('echo', { message });
+                log('Sent echo message', { message });
+            }
+        });
+        
+        // Clear log
+        clearLogBtn.addEventListener('click', () => {
+            logEl.innerHTML = '';
+        });
+    </script>
+</body>
+</html>

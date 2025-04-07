@@ -6,8 +6,10 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ISession extends Document {
   url: string;
   createdAt: Date;
+  updatedAt: Date;
   active: boolean;
   presenterToken: string;
+  presenterName: string;
   // Add explicit id property
   id: string;
 }
@@ -27,6 +29,10 @@ const SessionSchema: Schema = new Schema(
       default: true,
     },
     presenterToken: {
+      type: String,
+      required: true,
+    },
+    presenterName: {
       type: String,
       required: true,
     },

@@ -23,6 +23,7 @@ import {
   Alert,
   Snackbar,
   Grid,
+  SelectChangeEvent, // Import SelectChangeEvent
 } from '@mui/material';
 import {
   ThumbUp as ThumbUpIcon,
@@ -39,7 +40,7 @@ import { markAnswered } from '../store/slices/questionSlice';
 import { setSortBy, toggleFilterAnswered } from '../store/slices/uiSlice';
 
 const PresenterViewPage: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionCode } = useParams<{ sessionCode: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   
@@ -53,36 +54,39 @@ const PresenterViewPage: React.FC = () => {
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
   
   useEffect(() => {
-    if (!sessionId) {
+    if (!sessionCode) {
       navigate('/');
       return;
     }
     
     // Check if presenter token exists
-    const presenterToken = localStorage.getItem(`presenter_token_${sessionId}`);
-    if (!presenterToken) {
+    // We need the actual session ID to retrieve the presenter token
+    // Let's assume the session object is loaded by now, or handle loading state
+    // TODO: Handle case where session is not yet loaded when checking token
+    const presenterToken = session ? localStorage.getItem(`presenter_token_${session.id}`) : null;
+    if (!session || !presenterToken) { // Check session existence too
       navigate('/');
       return;
     }
     
     // Connect to socket
-    socketService.connect(sessionId);
+    socketService.connect(sessionCode);
     
     return () => {
       socketService.disconnect();
     };
-  }, [sessionId, navigate]);
+  }, [sessionCode, navigate, session]); // Add session dependency
   
   const handleCopyLink = () => {
     if (!session) return;
     
-    const joinUrl = `${window.location.origin}/join/${session.id}`;
+    const joinUrl = `${window.location.origin}/join/${session.url}`; // Use session.url
     navigator.clipboard.writeText(joinUrl);
     setCopySuccess(true);
   };
   
   const handleEndSession = async () => {
-    if (!sessionId) return;
+    if (!sessionCode || !session) return; // Check session as well
     
     if (!confirmEnd) {
       setConfirmEnd(true);
@@ -90,7 +94,8 @@ const PresenterViewPage: React.FC = () => {
     }
     
     try {
-      await dispatch(endSession(sessionId));
+      // endSession thunk likely expects the MongoDB _id
+      await dispatch(endSession(session.id));
       navigate('/');
     } catch (error) {
       console.error('Failed to end session:', error);
@@ -102,7 +107,7 @@ const PresenterViewPage: React.FC = () => {
     socketService.markAnswered(questionId);
   };
   
-  const handleSortChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleSortChange = (event: SelectChangeEvent<'votes' | 'timestamp' | 'status'>) => { // Use SelectChangeEvent
     dispatch(setSortBy(event.target.value as 'votes' | 'timestamp' | 'status'));
   };
   
@@ -171,7 +176,7 @@ const PresenterViewPage: React.FC = () => {
           <Grid item xs={12}>
             <Paper sx={{ p: 2 }}>
               <Typography variant="h5" gutterBottom>
-                Session: {session.id}
+                Session Code: {session.url}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Created: {new Date(session.createdAt).toLocaleString()}

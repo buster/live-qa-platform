@@ -14,9 +14,9 @@ const App = () => {
       <Route path="/" element={<HomePage />} />
       <Route path="/create" element={<CreateSessionPage />} />
       <Route path="/join" element={<JoinSessionPage />} />
-      <Route path="/join/:sessionId" element={<JoinSessionPage />} />
-      <Route path="/session/:sessionId/presenter" element={<PresenterViewPage />} />
-      <Route path="/session/:sessionId/participant" element={<ParticipantViewPage />} />
+      <Route path="/join/:sessionCode" element={<JoinSessionPage />} />
+      <Route path="/session/:sessionCode/presenter" element={<PresenterViewPage />} />
+      <Route path="/session/:sessionCode/participant" element={<ParticipantViewPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

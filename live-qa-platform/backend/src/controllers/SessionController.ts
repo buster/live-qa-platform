@@ -23,12 +23,28 @@ export default class SessionController {
    */
   async createSession(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { presenterName } = req.body;
-      const session = await this.sessionService.createSession(presenterName);
+      const { presenterName, customCode } = req.body;
       
+      // Create session with presenter name and optional custom code
+      const sessionData = {
+        presenterName,
+        customCode
+      };
+      
+      const result = await this.sessionService.createSession(sessionData);
+      
+      // Return session data and presenter token
       res.status(201).json({
         success: true,
-        data: session,
+        data: {
+          _id: result.id,
+          url: result.url,
+          active: result.active,
+          presenterToken: result.presenterToken,
+          presenterName: result.presenterName,
+          createdAt: result.createdAt,
+          updatedAt: result.updatedAt,
+        }
       });
     } catch (error) {
       next(error);
@@ -56,7 +72,14 @@ export default class SessionController {
       
       res.status(200).json({
         success: true,
-        data: session,
+        data: {
+          id: session.id, // Korrigiere Feldname zu 'id'
+          url: session.url,
+          active: session.active,
+          presenterName: session.presenterName,
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+        }
       });
     } catch (error) {
       next(error);
@@ -84,7 +107,14 @@ export default class SessionController {
       
       res.status(200).json({
         success: true,
-        data: session,
+        data: {
+          _id: session.id,
+          url: session.url,
+          active: session.active,
+          presenterName: session.presenterName,
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+        }
       });
     } catch (error) {
       next(error);

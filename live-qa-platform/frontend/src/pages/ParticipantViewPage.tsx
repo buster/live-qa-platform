@@ -32,7 +32,7 @@ import { createQuestion } from '../store/slices/questionSlice';
 import { showSnackbar } from '../store/slices/uiSlice';
 
 const ParticipantViewPage: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionCode } = useParams<{ sessionCode: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   
@@ -46,29 +46,37 @@ const ParticipantViewPage: React.FC = () => {
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
   
   useEffect(() => {
-    if (!sessionId) {
+    if (!sessionCode) {
       navigate('/');
       return;
     }
     
     // Get user name from localStorage
-    const storedName = localStorage.getItem(`participant_name_${sessionId}`);
+    // Use sessionCode for the localStorage key as well for consistency,
+    // although using the actual session.id might be more robust if codes could change.
+    // Sticking to sessionCode for now as requested.
+    const storedName = localStorage.getItem(`participant_name_${sessionCode}`);
     if (storedName) {
       setUserName(storedName);
     }
     
     // Connect to socket
-    socketService.connect(sessionId);
+    socketService.connect(sessionCode);
     
     return () => {
       socketService.disconnect();
     };
-  }, [sessionId, navigate]);
+  }, [sessionCode, navigate]);
   
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!questionText.trim() || !userName.trim() || !sessionId) {
+    // Add check for session object
+    if (!questionText.trim() || !userName.trim() || !sessionCode || !session) {
+      dispatch(showSnackbar({
+        message: 'Session data not loaded. Cannot submit question.',
+        severity: 'error',
+      }));
       return;
     }
     
@@ -76,14 +84,20 @@ const ParticipantViewPage: React.FC = () => {
     
     try {
       // Save name to localStorage
-      localStorage.setItem(`participant_name_${sessionId}`, userName);
+      localStorage.setItem(`participant_name_${sessionCode}`, userName);
       
-      // Submit question via socket
-      socketService.submitQuestion({
-        sessionId,
+      // Prepare question data
+      const questionData = {
+        // We need the actual MongoDB ID to associate the question with the session in the DB
+        sessionId: session.id,
         text: questionText,
         authorName: userName,
-      });
+      };
+      
+      console.log('Submitting question data (ParticipantViewPage):', questionData); // Add logging here
+      
+      // Submit question via socket
+      socketService.submitQuestion(questionData);
       
       // Clear input
       setQuestionText('');
@@ -104,7 +118,7 @@ const ParticipantViewPage: React.FC = () => {
   };
   
   const handleVote = (questionId: string, voteType: 'up' | 'down') => {
-    if (!userName || !sessionId) return;
+    if (!userName || !sessionCode) return;
     
     socketService.submitVote({
       questionId,

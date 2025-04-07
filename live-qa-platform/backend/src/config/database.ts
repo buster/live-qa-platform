@@ -13,8 +13,12 @@ class Database {
   private mongoURI: string;
   private isConnected: boolean = false;
 
-  private constructor() {
-    this.mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/live-qa-platform';
+  /**
+   * Create a new Database instance
+   * @param uri Optional MongoDB URI (defaults to environment variable)
+   */
+  constructor(uri?: string) {
+    this.mongoURI = uri || process.env.MONGODB_URI || 'mongodb://localhost:27017/live-qa-platform';
   }
 
   /**

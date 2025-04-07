@@ -3,6 +3,14 @@ import SessionRepository from '../repositories/SessionRepository';
 import { ISession } from '../models/Session';
 
 /**
+ * Interface for session creation parameters
+ */
+interface CreateSessionParams {
+  presenterName: string;
+  customCode?: string;
+}
+
+/**
  * Service for managing sessions
  */
 export default class SessionService {
@@ -18,16 +26,22 @@ export default class SessionService {
 
   /**
    * Create a new session
-   * @param presenterName Name of the presenter
+   * @param params Session creation parameters
    * @returns Created session
    */
-  async createSession(presenterName: string): Promise<ISession> {
+  async createSession(params: CreateSessionParams | string): Promise<ISession> {
+    // Handle both string and object parameters for backward compatibility
+    const presenterName = typeof params === 'string' ? params : params.presenterName;
+    const customCode = typeof params === 'string' ? undefined : params.customCode;
+    
     // Generate a unique token for the presenter
     const presenterToken = this.generateToken();
 
     // Create a new session
     const session = await this.sessionRepository.createWithUniqueUrl({
+      presenterName,
       presenterToken,
+      url: customCode,
     });
 
     return session;

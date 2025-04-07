@@ -21,7 +21,7 @@
 - [x] TypeScript-Konfiguration anpassen
 - [x] Middleware für CORS, JSON-Parsing einrichten
 - [ ] Logging-Middleware implementieren
-- [ ] Grundlegende Fehlerbehandlung einrichten
+- [x] Grundlegende Fehlerbehandlung einrichten
 
 ### Frontend-Grundlagen
 - [x] React-Projekt mit Create React App initialisieren
@@ -47,23 +47,23 @@
 - [x] Endpunkt zum Erstellen einer Session (POST /api/sessions)
 - [x] Endpunkt zum Abrufen einer Session (GET /api/sessions/:id)
 - [x] Endpunkt zum Beenden einer Session (DELETE /api/sessions/:id)
-- [ ] Middleware für Fehlerbehandlung implementieren
-- [ ] Validierung für Anfragen hinzufügen
-- [ ] JWT-Authentifizierung für Presenter implementieren
-- [ ] Integration-Tests für API-Endpunkte schreiben
+- [x] Middleware für Fehlerbehandlung implementieren
+- [x] Validierung für Anfragen hinzufügen
+- [x] JWT-Authentifizierung für Presenter implementieren
+- [x] Integration-Tests für API-Endpunkte schreiben
 
 ### WebSocket-Server
-- [ ] Socket.io installieren und konfigurieren
-- [ ] Socket.io in Express-Server integrieren
-- [ ] Event-Handler für 'join:session' implementieren
-- [ ] Event-Handler für 'submit:question' implementieren
-- [ ] Event-Handler für 'submit:vote' implementieren
-- [ ] Event-Handler für 'mark:answered' implementieren
-- [ ] Broadcast-Mechanismus für neue Fragen implementieren
-- [ ] Broadcast-Mechanismus für Votes implementieren
-- [ ] WebSocket-Authentifizierung implementieren
-- [ ] Rate-Limiting für Fragen und Votes hinzufügen
-- [ ] Tests für WebSocket-Funktionalität schreiben
+- [x] Socket.io installieren und konfigurieren
+- [x] Socket.io in Express-Server integrieren
+- [x] Event-Handler für 'join:session' implementieren
+- [x] Event-Handler für 'submit:question' implementieren
+- [x] Event-Handler für 'submit:vote' implementieren
+- [x] Event-Handler für 'mark:answered' implementieren
+- [x] Broadcast-Mechanismus für neue Fragen implementieren
+- [x] Broadcast-Mechanismus für Votes implementieren
+- [x] WebSocket-Authentifizierung implementieren
+- [x] Rate-Limiting für Fragen und Votes hinzufügen
+- [x] Tests für WebSocket-Funktionalität schreiben
 
 ### Fragen- und Voting-Logik
 - [x] QuestionService implementieren
@@ -205,7 +205,7 @@
 
 ### Meilensteine
 - [x] Phase 1: Projektsetup und Grundstruktur abgeschlossen
-- [ ] Phase 2: Backend-Entwicklung abgeschlossen
+- [x] Phase 2: Backend-Entwicklung abgeschlossen
 - [ ] Phase 3: Frontend-Entwicklung abgeschlossen
 - [ ] Phase 4: Integration und Optimierung abgeschlossen
 - [ ] Phase 5: Deployment und Abschluss abgeschlossen
