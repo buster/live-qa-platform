@@ -149,7 +149,9 @@ export default class SocketServer {
       );
 
       // Broadcast new question to all clients in the session
-      this.io.to(data.sessionId).emit('question:new', { question });
+      // Convert Mongoose document to plain object to ensure defaults are included
+      // Send the plain object directly as the payload
+      this.io.to(data.sessionId).emit('question:new', question.toObject());
     } catch (error) {
       console.error('Error submitting question:', error);
       socket.emit('error', { message: 'Failed to submit question' });

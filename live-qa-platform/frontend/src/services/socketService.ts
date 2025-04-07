@@ -1,8 +1,8 @@
 import io, { Socket } from 'socket.io-client'; // Revert import
 import { store } from '../store';
-import { addQuestion, updateQuestion, removeQuestion } from '../store/slices/questionSlice';
+import { addQuestion, updateQuestion, removeQuestion, setQuestions } from '../store/slices/questionSlice'; // Import setQuestions
 import { setSocketConnected, showSnackbar } from '../store/slices/uiSlice';
-import { Question } from '../types';
+import { Question, Session } from '../types'; // Import Session type
 
 class SocketService {
   private socket: Socket | null = null; // Revert type
@@ -57,7 +57,14 @@ class SocketService {
         }));
       }
     });
+// Handle session joined event
+this.socket.on('session:joined', (data: { session: Session; questions: Question[] }) => {
+  console.log('Received session:joined data:', data); // Optional: Logging
+  // Dispatch action to set initial questions
+  store.dispatch(setQuestions(data.questions));
+});
 
+// Handle other incoming events
     // Handle incoming events
     this.socket.on('question:new', (question: Question) => { // Remove null check
       store.dispatch(addQuestion(question));
