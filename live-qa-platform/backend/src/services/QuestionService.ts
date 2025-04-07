@@ -71,16 +71,16 @@ export default class QuestionService {
    * Vote on a question
    * @param questionId Question ID
    * @param voterName Voter name
-   * @param voteType Vote type (up/down)
+   * @param type Vote type (up/down)
    * @returns Updated question or null
    */
   async voteOnQuestion(
     questionId: string,
     voterName: string,
-    voteType: 'up' | 'down'
+    type: 'up' | 'down'
   ): Promise<IQuestion | null> {
     // Toggle the vote
-    await this.voteRepository.toggleVote(questionId, voterName, voteType);
+    await this.voteRepository.toggleVote(questionId, voterName, type);
 
     // Count the votes
     const upVotes = await this.voteRepository.countUpVotes(questionId);

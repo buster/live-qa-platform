@@ -75,7 +75,7 @@ export default class SocketServer {
       });
 
       // Submit vote
-      socket.on('submit:vote', (data: { questionId: string; voterName: string; voteType: 'up' | 'down' }) => {
+      socket.on('submit:vote', (data: { questionId: string; voterName: string; type: 'up' | 'down' }) => {
         this.handleSubmitVote(socket, data);
       });
 
@@ -165,9 +165,11 @@ export default class SocketServer {
    */
   private async handleSubmitVote(
     socket: Socket,
-    data: { questionId: string; voterName: string; voteType: 'up' | 'down' }
+    data: { questionId: string; voterName: string; type: 'up' | 'down' }
   ): Promise<void> {
     try {
+      console.log('Received submit:vote data:', data); // Add logging
+      
       // Apply rate limiting
       try {
         await this.voteRateLimiter.consume(socket.id);
@@ -180,7 +182,7 @@ export default class SocketServer {
       const question = await this.questionService.voteOnQuestion(
         data.questionId,
         data.voterName,
-        data.voteType
+        data.type // Changed from data.voteType to data.type to match frontend
       );
 
       if (!question) {
