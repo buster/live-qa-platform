@@ -23,9 +23,9 @@ const JoinSessionPage: React.FC = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const sessionError = useSelector((state: RootState) => state.session.error);
-  
+
   useEffect(() => {
     if (sessionError) {
       setError(sessionError);
@@ -39,7 +39,7 @@ const JoinSessionPage: React.FC = () => {
     if (/^[A-Za-z0-9]{6}$/.test(input)) {
       return input;
     }
-    
+
     // Try to extract code from URL
     try {
       // Check if it's a URL
@@ -47,7 +47,7 @@ const JoinSessionPage: React.FC = () => {
         // Extract the last part of the URL
         const parts = input.split('/');
         const lastPart = parts[parts.length - 1];
-        
+
         // If the last part is a 6-character code, return it
         if (/^[A-Za-z0-9]{6}$/.test(lastPart)) {
           return lastPart;
@@ -56,30 +56,30 @@ const JoinSessionPage: React.FC = () => {
     } catch (err) {
       console.error('Error extracting session code:', err);
     }
-    
+
     // Return original input if we couldn't extract a code
     return input;
   };
 
   const handleJoinSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!sessionUrlInput.trim()) {
       setError('Please enter a session URL or code');
       return;
     }
-    
+
     if (!name.trim()) {
       setError('Please enter your name');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     // Extract session code from input
     const sessionCode = extractSessionCode(sessionUrlInput);
-    
+
     try {
       const resultAction = await dispatch(joinSession(sessionCode));
       if (joinSession.fulfilled.match(resultAction)) {
@@ -88,8 +88,7 @@ const JoinSessionPage: React.FC = () => {
         localStorage.setItem(`participant_name_${session._id}`, name);
         // Connect to WebSocket with the actual session URL/code from the API response
         socketService.connect(session.url);
-        
-        
+
         navigate(`/session/${session.url}/participant`);
       } else {
         setError('Failed to join session. Please check the session code and try again.');
@@ -134,7 +133,7 @@ const JoinSessionPage: React.FC = () => {
               disabled={loading}
               helperText="Enter the 6-character code provided by the presenter"
             />
-            
+
             <TextField
               margin="normal"
               required

@@ -16,9 +16,9 @@ import {
   Divider,
   AppBar,
   Toolbar,
-  Snackbar,
-  Alert,
-  Grid,
+  // Snackbar, // Removed unused import
+  // Alert, // Removed unused import
+  // Grid, // Removed unused import
 } from '@mui/material';
 import {
   ThumbUp as ThumbUpIcon,
@@ -28,29 +28,29 @@ import {
 } from '@mui/icons-material';
 import { socketService } from '../services/socketService';
 import { RootState, AppDispatch } from '../store';
-import { createQuestion } from '../store/slices/questionSlice';
+// import { createQuestion } from '../store/slices/questionSlice'; // Removed unused import
 import { showSnackbar } from '../store/slices/uiSlice';
 
 const ParticipantViewPage: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  
+
   const [questionText, setQuestionText] = useState('');
   const [userName, setUserName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
   const session = useSelector((state: RootState) => state.session.currentSession);
   const questions = useSelector((state: RootState) => state.questions.questions);
   const userVotes = useSelector((state: RootState) => state.questions.userVotes);
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
-  
+
   useEffect(() => {
     if (!sessionCode) {
       navigate('/');
       return;
     }
-    
+
     // Get user name from localStorage
     // Use sessionCode for the localStorage key as well for consistency,
     // although using the actual session.id might be more robust if codes could change.
@@ -59,33 +59,35 @@ const ParticipantViewPage: React.FC = () => {
     if (storedName) {
       setUserName(storedName);
     }
-    
+
     // Connect to socket
     socketService.connect(sessionCode);
-    
+
     return () => {
       socketService.disconnect();
     };
   }, [sessionCode, navigate]);
-  
+
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Add check for session object
     if (!questionText.trim() || !userName.trim() || !sessionCode || !session) {
-      dispatch(showSnackbar({
-        message: 'Session data not loaded. Cannot submit question.',
-        severity: 'error',
-      }));
+      dispatch(
+        showSnackbar({
+          message: 'Session data not loaded. Cannot submit question.',
+          severity: 'error',
+        }),
+      );
       return;
     }
-    
+
     setSubmitting(true);
-    
+
     try {
       // Save name to localStorage
       localStorage.setItem(`participant_name_${sessionCode}`, userName);
-      
+
       // Prepare question data
       const questionData = {
         // We need the actual MongoDB ID to associate the question with the session in the DB
@@ -93,50 +95,54 @@ const ParticipantViewPage: React.FC = () => {
         text: questionText,
         authorName: userName,
       };
-      
+
       console.log('Submitting question data (ParticipantViewPage):', questionData); // Add logging here
-      
+
       // Submit question via socket
       socketService.submitQuestion(questionData);
-      
+
       // Clear input
       setQuestionText('');
-      
-      dispatch(showSnackbar({
-        message: 'Question submitted successfully',
-        severity: 'success',
-      }));
+
+      dispatch(
+        showSnackbar({
+          message: 'Question submitted successfully',
+          severity: 'success',
+        }),
+      );
     } catch (error) {
       console.error('Failed to submit question:', error);
-      dispatch(showSnackbar({
-        message: 'Failed to submit question. Please try again.',
-        severity: 'error',
-      }));
+      dispatch(
+        showSnackbar({
+          message: 'Failed to submit question. Please try again.',
+          severity: 'error',
+        }),
+      );
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   const handleVote = (questionId: string, voteType: 'up' | 'down') => {
     if (!userName || !sessionCode) return;
-    
+
     socketService.submitVote({
       questionId,
       voterName: userName,
       type: voteType,
     });
   };
-  
+
   // Sort questions by votes (descending)
   const sortedQuestions = [...questions].sort(
-    (a, b) => (b.votes.up - b.votes.down) - (a.votes.up - a.votes.down)
+    (a, b) => b.votes.up - b.votes.down - (a.votes.up - a.votes.down),
   );
-  
+
   const getUserVote = (questionId: string) => {
     if (!userName) return null;
     return userVotes[`${userName}-${questionId}`] || null;
   };
-  
+
   if (!session) {
     return (
       <Container>
@@ -146,7 +152,7 @@ const ParticipantViewPage: React.FC = () => {
       </Container>
     );
   }
-  
+
   return (
     <Box sx={{ flexGrow: 1, pb: 8 }}>
       <AppBar position="static">
@@ -161,7 +167,7 @@ const ParticipantViewPage: React.FC = () => {
           />
         </Toolbar>
       </AppBar>
-      
+
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Paper sx={{ p: 3, mb: 4 }}>
           <Typography variant="h5" gutterBottom>
@@ -208,13 +214,13 @@ const ParticipantViewPage: React.FC = () => {
             </Box>
           </Box>
         </Paper>
-        
+
         <Paper sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             Questions ({sortedQuestions.length})
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           {sortedQuestions.length === 0 ? (
             <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
               No questions yet. Be the first to ask a question!
@@ -228,9 +234,7 @@ const ParticipantViewPage: React.FC = () => {
                   sx={{
                     mb: 2,
                     p: 2,
-                    borderLeft: question.isAnswered
-                      ? '4px solid #4caf50'
-                      : '4px solid #2196f3',
+                    borderLeft: question.isAnswered ? '4px solid #4caf50' : '4px solid #2196f3',
                   }}
                 >
                   <ListItem alignItems="flex-start">
@@ -251,18 +255,18 @@ const ParticipantViewPage: React.FC = () => {
                       }
                       secondary={
                         <Box sx={{ mt: 1 }}>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            component="span"
-                          >
-                            From: {question.authorName} | {new Date(question.createdAt).toLocaleString()}
+                          <Typography variant="body2" color="text.secondary" component="span">
+                            From: {question.authorName} |{' '}
+                            {new Date(question.createdAt).toLocaleString()}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                             <IconButton
                               size="small"
                               color={getUserVote(question.id) === 'up' ? 'primary' : 'default'}
-                              onClick={() => handleVote(question.id, 'up')}
+                              onClick={() => {
+                                console.log('Upvote button clicked for question.id:', question.id); // Log question.id on click
+                                handleVote(question.id, 'up');
+                              }}
                               disabled={question.isAnswered}
                             >
                               <ThumbUpIcon fontSize="small" />
@@ -270,7 +274,7 @@ const ParticipantViewPage: React.FC = () => {
                             <Typography variant="body2" sx={{ mx: 1 }}>
                               {question.votes.up}
                             </Typography>
-                            
+
                             <IconButton
                               size="small"
                               color={getUserVote(question.id) === 'down' ? 'primary' : 'default'}
@@ -282,10 +286,12 @@ const ParticipantViewPage: React.FC = () => {
                             <Typography variant="body2" sx={{ mx: 1 }}>
                               {question.votes.down}
                             </Typography>
-                            
+
                             <Chip
                               label={`Score: ${question.votes.up - question.votes.down}`}
-                              color={question.votes.up - question.votes.down > 0 ? 'success' : 'default'}
+                              color={
+                                question.votes.up - question.votes.down > 0 ? 'success' : 'default'
+                              }
                               size="small"
                               sx={{ ml: 1 }}
                             />

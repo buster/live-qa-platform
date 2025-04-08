@@ -150,8 +150,8 @@ export default class SocketServer {
 
       // Broadcast new question to all clients in the session
       // Convert Mongoose document to plain object to ensure defaults are included
-      // Send the plain object directly as the payload
-      this.io.to(data.sessionId).emit('question:new', question.toObject());
+      // Send the plain object directly, ensuring virtuals (like 'id') are included
+      this.io.to(data.sessionId).emit('question:new', question.toObject({ virtuals: true }));
     } catch (error) {
       console.error('Error submitting question:', error);
       socket.emit('error', { message: 'Failed to submit question' });
@@ -190,8 +190,8 @@ export default class SocketServer {
         return;
       }
 
-      // Broadcast updated question to all clients in the session
-      this.io.to(question.sessionId.toString()).emit('question:updated', { question });
+      // Broadcast updated vote counts to all clients in the session
+      this.io.to(question.sessionId.toString()).emit('vote:updated', question.id, question.votes); // Send vote:updated event
     } catch (error) {
       console.error('Error submitting vote:', error);
       socket.emit('error', { message: 'Failed to submit vote' });

@@ -14,7 +14,7 @@ class ApiService {
 
   constructor() {
     const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-    
+
     this.api = axios.create({
       baseURL,
       headers: {
@@ -25,18 +25,18 @@ class ApiService {
     // Add request interceptor for authentication
     this.api.interceptors.request.use((config) => {
       const url = config.url || '';
-      
+
       // Check if the request is for a presenter action
-      if (url.includes('/answered') || url.includes('/sessions/') && config.method === 'delete') {
+      if (url.includes('/answered') || (url.includes('/sessions/') && config.method === 'delete')) {
         const sessionId = this.extractSessionId(url);
         const presenterToken = localStorage.getItem(`presenter_token_${sessionId}`);
-        
+
         if (presenterToken) {
           config.headers = config.headers || {};
           config.headers.Authorization = `Bearer ${presenterToken}`;
         }
       }
-      
+
       return config;
     });
   }
@@ -45,10 +45,10 @@ class ApiService {
     // Extract session ID from URL like /api/sessions/abc123 or /api/questions/abc123-xyz789/answered
     const sessionMatch = url.match(/\/sessions\/([^/]+)/);
     if (sessionMatch) return sessionMatch[1];
-    
+
     const questionMatch = url.match(/\/questions\/([^-]+)/);
     if (questionMatch) return questionMatch[1];
-    
+
     return '';
   }
 
@@ -59,7 +59,9 @@ class ApiService {
   }
 
   async getSession(sessionId: string): Promise<JoinSessionResponse> {
-    const response: AxiosResponse<JoinSessionResponse> = await this.api.get(`/api/sessions/${sessionId}`);
+    const response: AxiosResponse<JoinSessionResponse> = await this.api.get(
+      `/api/sessions/${sessionId}`,
+    );
     return response.data;
   }
 
@@ -69,21 +71,24 @@ class ApiService {
 
   // Question API
   async createQuestion(questionData: CreateQuestionRequest): Promise<CreateQuestionResponse> {
-    const response: AxiosResponse<CreateQuestionResponse> = await this.api.post('/api/questions', questionData);
+    const response: AxiosResponse<CreateQuestionResponse> = await this.api.post(
+      '/api/questions',
+      questionData,
+    );
     return response.data;
   }
 
   async voteQuestion(voteData: VoteRequest): Promise<VoteResponse> {
     const response: AxiosResponse<VoteResponse> = await this.api.post(
       `/api/questions/${voteData.questionId}/vote`,
-      voteData
+      voteData,
     );
     return response.data;
   }
 
   async markAnswered(questionId: string): Promise<MarkAnsweredResponse> {
     const response: AxiosResponse<MarkAnsweredResponse> = await this.api.patch(
-      `/api/questions/${questionId}/answered`
+      `/api/questions/${questionId}/answered`,
     );
     return response.data;
   }
@@ -93,13 +98,13 @@ class ApiService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('sessionId', sessionId);
-    
+
     const config: AxiosRequestConfig = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     };
-    
+
     const response = await this.api.post('/api/media/upload', formData, config);
     return response.data;
   }

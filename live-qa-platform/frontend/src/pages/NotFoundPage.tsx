@@ -13,7 +13,7 @@ const NotFoundPage: React.FC = () => {
             Page Not Found
           </Typography>
           <Typography variant="h5" color="text.secondary" paragraph>
-            The page you are looking for doesn't exist or has been moved.
+            The page you are looking for doesn&apos;t exist or has been moved.
           </Typography>
           <Button
             variant="contained"

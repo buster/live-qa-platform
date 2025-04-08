@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { SessionState, CreateSessionResponse, JoinSessionResponse } from '../../types';
+import { SessionState, Session } from '../../types'; // Removed unused imports, added Session
 
 // Define the interface for session creation parameters
 interface CreateSessionParams {
@@ -20,10 +20,8 @@ export const createSession = createAsyncThunk(
   async (params: CreateSessionParams | string, { rejectWithValue }) => {
     try {
       // Handle both string and object parameters for backward compatibility
-      const requestData = typeof params === 'string' 
-        ? { presenterName: params } 
-        : params;
-      
+      const requestData = typeof params === 'string' ? { presenterName: params } : params;
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions`, {
         method: 'POST',
         headers: {
@@ -38,27 +36,30 @@ export const createSession = createAsyncThunk(
       }
 
       const responseData = await response.json();
-      
+
       // Check if the response has the expected structure
       if (responseData.success && responseData.data) {
         // Store presenter token in localStorage
-        localStorage.setItem(`presenter_token_${responseData.data._id}`, responseData.data.presenterToken);
-        
-        // Return the session data
-        return {
+        localStorage.setItem(
+          `presenter_token_${responseData.data._id}`,
+          responseData.data.presenterToken,
+        );
+
+        // Return the session data conforming to the Session type
+        const sessionData: Session = {
           id: responseData.data._id,
           url: responseData.data.url,
-          active: responseData.data.active,
+          isActive: responseData.data.active, // Map active to isActive
           createdAt: responseData.data.createdAt,
-          updatedAt: responseData.data.updatedAt
         };
+        return sessionData;
       } else {
         return rejectWithValue('Invalid response format from server');
       }
     } catch (error) {
       return rejectWithValue('Network error: Could not create session');
     }
-  }
+  },
 );
 
 export const joinSession = createAsyncThunk(
@@ -79,7 +80,7 @@ export const joinSession = createAsyncThunk(
       }
 
       const responseData = await response.json();
-      
+
       // Check if the response has the expected structure
       if (responseData.success && responseData.data) {
         return responseData.data;
@@ -89,7 +90,7 @@ export const joinSession = createAsyncThunk(
     } catch (error) {
       return rejectWithValue('Network error: Could not join session');
     }
-  }
+  },
 );
 
 export const endSession = createAsyncThunk(
@@ -97,16 +98,16 @@ export const endSession = createAsyncThunk(
   async (sessionId: string, { rejectWithValue }) => {
     try {
       const presenterToken = localStorage.getItem(`presenter_token_${sessionId}`);
-      
+
       if (!presenterToken) {
         return rejectWithValue('Unauthorized: Missing presenter token');
       }
-      
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/sessions/${sessionId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${presenterToken}`,
+          Authorization: `Bearer ${presenterToken}`,
         },
       });
 
@@ -116,7 +117,7 @@ export const endSession = createAsyncThunk(
       }
 
       const responseData = await response.json();
-      
+
       // Check if the response has the expected structure
       if (responseData.success) {
         // Remove presenter token from localStorage
@@ -128,7 +129,7 @@ export const endSession = createAsyncThunk(
     } catch (error) {
       return rejectWithValue('Network error: Could not end session');
     }
-  }
+  },
 );
 
 // Slice
@@ -151,7 +152,8 @@ const sessionSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createSession.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(createSession.fulfilled, (state, action: PayloadAction<Session>) => {
+        // Use Session type
         state.loading = false;
         state.currentSession = action.payload;
       })
@@ -159,13 +161,14 @@ const sessionSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // Join session
       .addCase(joinSession.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(joinSession.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(joinSession.fulfilled, (state, action: PayloadAction<Session>) => {
+        // Use Session type
         state.loading = false;
         state.currentSession = action.payload;
       })
@@ -173,7 +176,7 @@ const sessionSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // End session
       .addCase(endSession.pending, (state) => {
         state.loading = true;

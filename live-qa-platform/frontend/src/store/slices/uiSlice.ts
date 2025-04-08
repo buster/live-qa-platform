@@ -22,10 +22,13 @@ const uiSlice = createSlice({
     toggleDarkMode: (state) => {
       state.darkMode = !state.darkMode;
     },
-    showSnackbar: (state, action: PayloadAction<{
-      message: string;
-      severity: 'success' | 'info' | 'warning' | 'error';
-    }>) => {
+    showSnackbar: (
+      state,
+      action: PayloadAction<{
+        message: string;
+        severity: 'success' | 'info' | 'warning' | 'error';
+      }>,
+    ) => {
       state.snackbar = {
         open: true,
         message: action.payload.message,

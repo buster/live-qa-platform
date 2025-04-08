@@ -24,7 +24,8 @@ const HomePage: React.FC = () => {
                   Presenters
                 </Typography>
                 <Typography paragraph>
-                  Create a new Q&A session for your presentation and manage audience questions in real-time.
+                  Create a new Q&A session for your presentation and manage audience questions in
+                  real-time.
                 </Typography>
                 <Button
                   variant="contained"
@@ -45,7 +46,8 @@ const HomePage: React.FC = () => {
                   Participants
                 </Typography>
                 <Typography paragraph>
-                  Join an existing Q&A session to ask questions and vote on questions from other participants.
+                  Join an existing Q&A session to ask questions and vote on questions from other
+                  participants.
                 </Typography>
                 <Button
                   variant="contained"

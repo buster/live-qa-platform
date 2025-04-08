@@ -40,20 +40,20 @@ const CreateSessionPage: React.FC = () => {
       setNameError('Presenter name is required');
       return;
     }
-    
+
     // Validate custom code if enabled
     if (customCodeEnabled) {
       if (!customCode.trim()) {
         setCustomCodeError('Session code is required');
         return;
       }
-      
+
       if (!validateCustomCode(customCode)) {
         setCustomCodeError('Session code must be 6 alphanumeric characters');
         return;
       }
     }
-    
+
     setLoading(true);
     setError(null);
     setNameError(null);
@@ -63,9 +63,9 @@ const CreateSessionPage: React.FC = () => {
       // If custom code is enabled, pass it to createSession
       const sessionData = {
         presenterName,
-        customCode: customCodeEnabled ? customCode : undefined
+        customCode: customCodeEnabled ? customCode : undefined,
       };
-      
+
       const resultAction = await dispatch(createSession(sessionData));
       if (createSession.fulfilled.match(resultAction)) {
         const session = resultAction.payload;
@@ -99,12 +99,12 @@ const CreateSessionPage: React.FC = () => {
           )}
 
           <Typography variant="body1" paragraph>
-            When you create a new session, you'll receive a unique link that you can share with your
-            audience. They can use this link to join the session and submit questions.
+            When you create a new session, you&apos;ll receive a unique link that you can share with
+            your audience. They can use this link to join the session and submit questions.
           </Typography>
 
           <Typography variant="body1" paragraph>
-            As the presenter, you'll have access to a dashboard where you can view and manage
+            As the presenter, you&apos;ll have access to a dashboard where you can view and manage
             questions in real-time.
           </Typography>
 
@@ -120,7 +120,7 @@ const CreateSessionPage: React.FC = () => {
               disabled={loading}
               sx={{ mb: 3 }}
             />
-            
+
             <FormControlLabel
               control={
                 <Switch
@@ -132,11 +132,11 @@ const CreateSessionPage: React.FC = () => {
               label="Use custom session code"
               sx={{ mb: 1 }}
             />
-            
+
             <FormHelperText sx={{ mt: -1, mb: 2 }}>
               Enable this option to specify your own 6-character code for the session
             </FormHelperText>
-            
+
             {customCodeEnabled && (
               <TextField
                 fullWidth
@@ -145,7 +145,7 @@ const CreateSessionPage: React.FC = () => {
                 value={customCode}
                 onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
                 error={!!customCodeError}
-                helperText={customCodeError || "Enter a 6-character alphanumeric code (A-Z, 0-9)"}
+                helperText={customCodeError || 'Enter a 6-character alphanumeric code (A-Z, 0-9)'}
                 disabled={loading}
                 inputProps={{ maxLength: 6 }}
                 sx={{ mb: 3 }}
