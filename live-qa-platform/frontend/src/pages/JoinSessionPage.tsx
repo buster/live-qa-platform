@@ -18,8 +18,8 @@ import { socketService } from '../services/socketService';
 const JoinSessionPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { sessionUrl } = useParams<{ sessionUrl?: string }>();
-  const [sessionUrlInput, setSessionUrlInput] = useState(sessionUrl || '');
+  const { sessionCode } = useParams<{ sessionCode?: string }>();
+  const [sessionUrlInput, setSessionUrlInput] = useState(sessionCode || '');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
