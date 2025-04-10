@@ -36,7 +36,6 @@ import {
 import { socketService } from '../services/socketService';
 import { RootState, AppDispatch } from '../store';
 import { endSession } from '../store/slices/sessionSlice';
-import { markAnswered } from '../store/slices/questionSlice';
 import { setSortBy, toggleFilterAnswered } from '../store/slices/uiSlice';
 
 const PresenterViewPage: React.FC = () => {
@@ -46,6 +45,7 @@ const PresenterViewPage: React.FC = () => {
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
 
   const session = useSelector((state: RootState) => state.session.currentSession);
   const questions = useSelector((state: RootState) => state.questions.questions);
@@ -53,30 +53,42 @@ const PresenterViewPage: React.FC = () => {
   const filterAnswered = useSelector((state: RootState) => state.ui.filterAnswered);
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
 
+  // Funktion zum manuellen Wiederverbinden
+  const handleReconnect = () => {
+    if (!sessionCode) return;
+    
+    setIsReconnecting(true);
+    socketService.connect(sessionCode);
+    
+    // Setze den Reconnecting-Status nach 2 Sekunden zurück
+    setTimeout(() => {
+      setIsReconnecting(false);
+    }, 2000);
+  };
+
   useEffect(() => {
     if (!sessionCode) {
       navigate('/');
       return;
     }
 
-    // Check if presenter token exists
-    // We need the actual session ID to retrieve the presenter token
-    // Let's assume the session object is loaded by now, or handle loading state
-    // TODO: Handle case where session is not yet loaded when checking token
+    // Prüfe, ob ein Presenter-Token existiert
     const presenterToken = session ? localStorage.getItem(`presenter_token_${session.id}`) : null;
+    
+    // Wenn keine Session oder kein Token vorhanden ist, zur Startseite navigieren
     if (!session || !presenterToken) {
-      // Check session existence too
       navigate('/');
       return;
     }
 
-    // Connect to socket
+    // Mit Socket verbinden
     socketService.connect(sessionCode);
 
+    // Bereinigungsfunktion
     return () => {
       socketService.disconnect();
     };
-  }, [sessionCode, navigate, session]); // Add session dependency
+  }, [sessionCode, navigate, session]);
 
   const handleCopyLink = () => {
     if (!session) return;
@@ -104,7 +116,7 @@ const PresenterViewPage: React.FC = () => {
   };
 
   const handleMarkAnswered = (questionId: string) => {
-    dispatch(markAnswered({ questionId }));
+    // Der Socket-Service kümmert sich jetzt um optimistische Updates und Offline-Handling
     socketService.markAnswered(questionId);
   };
 
@@ -150,17 +162,31 @@ const PresenterViewPage: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Presenter View
           </Typography>
-          <Chip
-            label={socketConnected ? 'Connected' : 'Disconnected'}
-            color={socketConnected ? 'success' : 'error'}
-            size="small"
-            sx={{ mr: 2 }}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+            <Chip
+              label={socketConnected ? 'Verbunden' : 'Getrennt'}
+              color={socketConnected ? 'success' : 'error'}
+              size="small"
+              sx={{ mr: 1 }}
+            />
+            {!socketConnected && (
+              <Button
+                size="small"
+                variant="outlined"
+                color="primary"
+                onClick={handleReconnect}
+                disabled={isReconnecting}
+                sx={{ mr: 1 }}
+              >
+                {isReconnecting ? 'Verbinde...' : 'Neu verbinden'}
+              </Button>
+            )}
+          </Box>
           <Button color="inherit" startIcon={<ContentCopyIcon />} onClick={handleCopyLink}>
-            Copy Link
+            Link kopieren
           </Button>
           <Button color="inherit" startIcon={<ExitToAppIcon />} onClick={handleEndSession}>
-            {confirmEnd ? 'Confirm End' : 'End Session'}
+            {confirmEnd ? 'Ende bestätigen' : 'Session beenden'}
           </Button>
         </Toolbar>
       </AppBar>
