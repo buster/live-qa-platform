@@ -135,7 +135,7 @@ const ParticipantViewPage: React.FC = () => {
 
   const handleVote = (questionId: string, voteType: 'up' | 'down') => {
     console.log('handleVote called with questionId:', questionId, 'voteType:', voteType);
-    
+
     if (!userName || !sessionCode) {
       console.log('handleVote early return: userName or sessionCode missing');
       return;
@@ -156,12 +156,12 @@ const ParticipantViewPage: React.FC = () => {
 
   // Log questions to debug
   console.log('Questions from Redux store:', questions);
-  
+
   // Sort questions by votes (descending)
   const sortedQuestions = [...questions].sort(
     (a, b) => b.votes.up - b.votes.down - (a.votes.up - a.votes.down),
   );
-  
+
   // Log sorted questions to debug
   console.log('Sorted questions:', sortedQuestions);
 
@@ -214,10 +214,10 @@ const ParticipantViewPage: React.FC = () => {
                 readOnly: true,
               }}
               sx={{
-                "& .MuiInputBase-input.Mui-disabled": {
-                  WebkitTextFillColor: "rgba(0, 0, 0, 0.87)",
+                '& .MuiInputBase-input.Mui-disabled': {
+                  WebkitTextFillColor: 'rgba(0, 0, 0, 0.87)',
                 },
-                bgcolor: 'action.hover'
+                bgcolor: 'action.hover',
               }}
             />
             <TextField
@@ -262,8 +262,8 @@ const ParticipantViewPage: React.FC = () => {
           ) : (
             <List>
               {sortedQuestions
-                .filter(question => question && question.id)
-                .map(question => (
+                .filter((question) => question && question.id)
+                .map((question) => (
                   <Paper
                     key={question.id}
                     elevation={1}
@@ -300,9 +300,17 @@ const ParticipantViewPage: React.FC = () => {
                                 size="small"
                                 color={getUserVote(question.id) === 'up' ? 'primary' : 'default'}
                                 onClick={() => {
-                                  console.log('Upvote button clicked for question:', question); // Log entire question object
-                                  console.log('Upvote button clicked for question.id:', question.id); // Log question.id on click
-                                  console.log('Question type:', typeof question, 'ID type:', typeof question.id); // Log types
+                                  console.log('Upvote button clicked for question:', question);
+                                  console.log(
+                                    'Upvote button clicked for question.id:',
+                                    question.id,
+                                  );
+                                  console.log(
+                                    'Question type:',
+                                    typeof question,
+                                    'ID type:',
+                                    typeof question.id,
+                                  );
                                   handleVote(question.id, 'up');
                                 }}
                                 disabled={question.isAnswered}
@@ -328,7 +336,9 @@ const ParticipantViewPage: React.FC = () => {
                               <Chip
                                 label={`Score: ${question.votes.up - question.votes.down}`}
                                 color={
-                                  question.votes.up - question.votes.down > 0 ? 'success' : 'default'
+                                  question.votes.up - question.votes.down > 0
+                                    ? 'success'
+                                    : 'default'
                                 }
                                 size="small"
                                 sx={{ ml: 1 }}

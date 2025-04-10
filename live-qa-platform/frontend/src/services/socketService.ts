@@ -102,22 +102,17 @@ class SocketService {
     // Handle session joined event
     this.socket.on('session:joined', (data: { session: any; questions: any[] }) => {
       console.log('Received session:joined data:', data);
-      
-      // Transform session to match frontend types (rename _id to id)
-      const transformedSession: Session = {
-        ...data.session,
-        id: data.session._id || data.session.id
-      };
-      
+
       // Transform questions to match frontend types (rename _id to id)
-      const transformedQuestions: Question[] = data.questions.map(q => ({
+      const transformedQuestions: Question[] = data.questions.map((q) => ({
         ...q,
         id: q._id || q.id,
-        sessionId: typeof q.sessionId === 'object' && q.sessionId._id ? q.sessionId._id : q.sessionId
+        sessionId:
+          typeof q.sessionId === 'object' && q.sessionId._id ? q.sessionId._id : q.sessionId,
       }));
-      
+
       console.log('Transformed questions:', transformedQuestions);
-      
+
       // Log each transformed question to check if they have valid IDs
       if (transformedQuestions.length > 0) {
         console.log('Transformed questions with IDs:');
@@ -128,7 +123,7 @@ class SocketService {
       } else {
         console.log('No questions received in session:joined event');
       }
-      
+
       // Dispatch action to set initial questions
       store.dispatch(setQuestions(transformedQuestions));
     });
@@ -138,17 +133,20 @@ class SocketService {
     this.socket.on('question:new', (question: any) => {
       // Add logging to debug question object
       console.log('Received question:new event with question:', question);
-      
+
       // Transform question to match frontend types (rename _id to id)
       const transformedQuestion: Question = {
         ...question,
         id: question._id || question.id,
-        sessionId: typeof question.sessionId === 'object' && question.sessionId._id ? question.sessionId._id : question.sessionId
+        sessionId:
+          typeof question.sessionId === 'object' && question.sessionId._id
+            ? question.sessionId._id
+            : question.sessionId,
       };
-      
+
       console.log('Transformed question:', transformedQuestion);
       console.log('Transformed question ID:', transformedQuestion.id);
-      
+
       // Dispatch action to add question to store
       store.dispatch(addQuestion(transformedQuestion));
     });
@@ -158,11 +156,17 @@ class SocketService {
       const transformedQuestion: Question = {
         ...question,
         id: question._id || question.id,
-        sessionId: typeof question.sessionId === 'object' && question.sessionId._id ? question.sessionId._id : question.sessionId
+        sessionId:
+          typeof question.sessionId === 'object' && question.sessionId._id
+            ? question.sessionId._id
+            : question.sessionId,
       };
-      
-      console.log('Received question:updated event with transformed question:', transformedQuestion);
-      
+
+      console.log(
+        'Received question:updated event with transformed question:',
+        transformedQuestion,
+      );
+
       // Dispatch action to update question in store
       store.dispatch(updateQuestion(transformedQuestion));
     });
@@ -174,22 +178,22 @@ class SocketService {
 
     this.socket.on('vote:updated', (questionId: string, votes: { up: number; down: number }) => {
       console.log('Received vote:updated event with questionId:', questionId, 'votes:', votes);
-      
+
       // Check if questionId is MongoDB _id format and find question
       const state = store.getState();
-      
+
       // Try to find question by id
       // First try to find by exact match
       let question = state.questions.questions.find((q) => q.id === questionId);
-      
+
       // If not found, try to find by partial match (in case MongoDB _id is used)
       if (!question && questionId.length >= 24) {
         // MongoDB IDs are typically 24 characters
-        question = state.questions.questions.find((q) =>
-          q.id.includes(questionId) || questionId.includes(q.id)
+        question = state.questions.questions.find(
+          (q) => q.id.includes(questionId) || questionId.includes(q.id),
         );
       }
-      
+
       console.log('Found question for vote update:', question);
 
       if (question) {
@@ -235,21 +239,21 @@ class SocketService {
   submitVote(vote: { questionId: string; voterName: string; type: 'up' | 'down' }): void {
     if (this.socket && this.socket.connected) {
       console.log('Emitting submit:vote data (socketService):', vote);
-      
+
       // Make sure we're using the correct questionId format
       // If the questionId contains a hyphen, it might be a client-side ID
       // Extract the MongoDB ObjectId part (before the first hyphen)
       const questionId = vote.questionId.includes('-')
         ? vote.questionId.split('-')[0]
         : vote.questionId;
-      
+
       const transformedVote = {
         ...vote,
-        questionId
+        questionId,
       };
-      
+
       console.log('Transformed vote data:', transformedVote);
-      
+
       this.socket.emit('submit:vote', transformedVote);
     } else {
       store.dispatch(
@@ -264,16 +268,16 @@ class SocketService {
   markAnswered(questionId: string): void {
     if (this.socket && this.socket.connected) {
       console.log('Marking question as answered, original questionId:', questionId);
-      
+
       // Make sure we're using the correct questionId format
       // If the questionId contains a hyphen, it might be a client-side ID
       // Extract the MongoDB ObjectId part (before the first hyphen)
       const transformedQuestionId = questionId.includes('-')
         ? questionId.split('-')[0]
         : questionId;
-      
+
       console.log('Transformed questionId for mark:answered:', transformedQuestionId);
-      
+
       this.socket.emit('mark:answered', transformedQuestionId);
     } else {
       store.dispatch(

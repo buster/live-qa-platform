@@ -225,15 +225,17 @@ const PresenterViewPage: React.FC = () => {
               ) : (
                 <List>
                   {filteredQuestions
-                    .filter(question => question && question.id)
-                    .map(question => (
+                    .filter((question) => question && question.id)
+                    .map((question) => (
                       <Paper
                         key={question.id}
                         elevation={1}
                         sx={{
                           mb: 2,
                           p: 2,
-                          borderLeft: question.isAnswered ? '4px solid #4caf50' : '4px solid #2196f3',
+                          borderLeft: question.isAnswered
+                            ? '4px solid #4caf50'
+                            : '4px solid #2196f3',
                         }}
                       >
                         <ListItem
