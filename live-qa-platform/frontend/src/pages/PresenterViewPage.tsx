@@ -92,8 +92,61 @@ const PresenterViewPage: React.FC = () => {
     if (!session) return;
 
     const joinUrl = `${window.location.origin}/join/${session.url}`; // Use session.url
-    navigator.clipboard.writeText(joinUrl);
-    setCopySuccess(true);
+
+    try {
+      // Try to use the Clipboard API if available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(joinUrl)
+          .then(() => {
+            setCopySuccess(true);
+          })
+          .catch((err) => {
+            console.error('Failed to copy with Clipboard API:', err);
+            fallbackCopyToClipboard(joinUrl);
+          });
+      } else {
+        // Fallback for browsers where Clipboard API is not available
+        fallbackCopyToClipboard(joinUrl);
+      }
+    } catch (err) {
+      console.error('Copy to clipboard error:', err);
+      fallbackCopyToClipboard(joinUrl);
+    }
+  };
+
+  // Fallback method to copy text to clipboard
+  const fallbackCopyToClipboard = (text: string) => {
+    try {
+      // Create a temporary textarea element
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+
+      // Make the textarea out of viewport
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      // Execute the copy command
+      const successful = document.execCommand('copy');
+
+      // Remove the temporary element
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        setCopySuccess(true);
+      } else {
+        console.error('Fallback: Unable to copy to clipboard');
+        alert('Copy to clipboard failed. Please copy this URL manually: ' + text);
+      }
+    } catch (err) {
+      console.error('Fallback: Copy to clipboard failed:', err);
+      alert('Copy to clipboard failed. Please copy this URL manually: ' + text);
+    }
   };
 
   const handleEndSession = async () => {
