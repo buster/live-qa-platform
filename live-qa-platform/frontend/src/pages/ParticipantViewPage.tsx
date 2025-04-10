@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { joinSession } from '../store/slices/sessionSlice';
 import {
   Container,
   Typography,
@@ -45,6 +46,7 @@ const ParticipantViewPage: React.FC = () => {
   const userVotes = useSelector((state: RootState) => state.questions.userVotes);
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
 
+  // First useEffect to load the session if needed
   useEffect(() => {
     if (!sessionCode) {
       navigate('/');
@@ -52,21 +54,30 @@ const ParticipantViewPage: React.FC = () => {
     }
 
     // Get user name from localStorage
-    // Use sessionCode for the localStorage key as well for consistency,
-    // although using the actual session.id might be more robust if codes could change.
-    // Sticking to sessionCode for now as requested.
     const storedName = localStorage.getItem(`participant_name_${sessionCode}`);
     if (storedName) {
       setUserName(storedName);
     }
 
-    // Connect to socket
+    // If session is not loaded (e.g., after page refresh), load it
+    if (!session) {
+      dispatch(joinSession(sessionCode));
+    }
+  }, [sessionCode, navigate, session, dispatch]);
+
+  // Second useEffect to connect to socket only when session is loaded
+  useEffect(() => {
+    if (!sessionCode || !session) {
+      return;
+    }
+
+    // Connect to socket only when session is loaded
     socketService.connect(sessionCode);
 
     return () => {
       socketService.disconnect();
     };
-  }, [sessionCode, navigate]);
+  }, [sessionCode, session]);
 
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +134,18 @@ const ParticipantViewPage: React.FC = () => {
   };
 
   const handleVote = (questionId: string, voteType: 'up' | 'down') => {
-    if (!userName || !sessionCode) return;
+    console.log('handleVote called with questionId:', questionId, 'voteType:', voteType);
+    
+    if (!userName || !sessionCode) {
+      console.log('handleVote early return: userName or sessionCode missing');
+      return;
+    }
+
+    // Check if questionId is valid
+    if (!questionId) {
+      console.error('Invalid questionId:', questionId);
+      return;
+    }
 
     socketService.submitVote({
       questionId,
@@ -132,10 +154,16 @@ const ParticipantViewPage: React.FC = () => {
     });
   };
 
+  // Log questions to debug
+  console.log('Questions from Redux store:', questions);
+  
   // Sort questions by votes (descending)
   const sortedQuestions = [...questions].sort(
     (a, b) => b.votes.up - b.votes.down - (a.votes.up - a.votes.down),
   );
+  
+  // Log sorted questions to debug
+  console.log('Sorted questions:', sortedQuestions);
 
   const getUserVote = (questionId: string) => {
     if (!userName) return null;
@@ -233,81 +261,85 @@ const ParticipantViewPage: React.FC = () => {
             </Typography>
           ) : (
             <List>
-              {sortedQuestions.map((question) => (
-                <Paper
-                  key={question.id}
-                  elevation={1}
-                  sx={{
-                    mb: 2,
-                    p: 2,
-                    borderLeft: question.isAnswered ? '4px solid #4caf50' : '4px solid #2196f3',
-                  }}
-                >
-                  <ListItem alignItems="flex-start">
-                    <ListItemText
-                      primary={
-                        <Typography variant="h6">
-                          {question.text}
-                          {question.isAnswered && (
-                            <Chip
-                              label="Answered"
-                              color="success"
-                              size="small"
-                              icon={<CheckIcon />}
-                              sx={{ ml: 1 }}
-                            />
-                          )}
-                        </Typography>
-                      }
-                      secondary={
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2" color="text.secondary" component="span">
-                            From: {question.authorName} |{' '}
-                            {new Date(question.createdAt).toLocaleString()}
+              {sortedQuestions
+                .filter(question => question && question.id)
+                .map(question => (
+                  <Paper
+                    key={question.id}
+                    elevation={1}
+                    sx={{
+                      mb: 2,
+                      p: 2,
+                      borderLeft: question.isAnswered ? '4px solid #4caf50' : '4px solid #2196f3',
+                    }}
+                  >
+                    <ListItem alignItems="flex-start">
+                      <ListItemText
+                        primary={
+                          <Typography variant="h6">
+                            {question.text}
+                            {question.isAnswered && (
+                              <Chip
+                                label="Answered"
+                                color="success"
+                                size="small"
+                                icon={<CheckIcon />}
+                                sx={{ ml: 1 }}
+                              />
+                            )}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <IconButton
-                              size="small"
-                              color={getUserVote(question.id) === 'up' ? 'primary' : 'default'}
-                              onClick={() => {
-                                console.log('Upvote button clicked for question.id:', question.id); // Log question.id on click
-                                handleVote(question.id, 'up');
-                              }}
-                              disabled={question.isAnswered}
-                            >
-                              <ThumbUpIcon fontSize="small" />
-                            </IconButton>
-                            <Typography variant="body2" sx={{ mx: 1 }}>
-                              {question.votes.up}
+                        }
+                        secondary={
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="body2" color="text.secondary" component="span">
+                              From: {question.authorName} |{' '}
+                              {new Date(question.createdAt).toLocaleString()}
                             </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                              <IconButton
+                                size="small"
+                                color={getUserVote(question.id) === 'up' ? 'primary' : 'default'}
+                                onClick={() => {
+                                  console.log('Upvote button clicked for question:', question); // Log entire question object
+                                  console.log('Upvote button clicked for question.id:', question.id); // Log question.id on click
+                                  console.log('Question type:', typeof question, 'ID type:', typeof question.id); // Log types
+                                  handleVote(question.id, 'up');
+                                }}
+                                disabled={question.isAnswered}
+                              >
+                                <ThumbUpIcon fontSize="small" />
+                              </IconButton>
+                              <Typography variant="body2" sx={{ mx: 1 }}>
+                                {question.votes.up}
+                              </Typography>
 
-                            <IconButton
-                              size="small"
-                              color={getUserVote(question.id) === 'down' ? 'primary' : 'default'}
-                              onClick={() => handleVote(question.id, 'down')}
-                              disabled={question.isAnswered}
-                            >
-                              <ThumbDownIcon fontSize="small" />
-                            </IconButton>
-                            <Typography variant="body2" sx={{ mx: 1 }}>
-                              {question.votes.down}
-                            </Typography>
+                              <IconButton
+                                size="small"
+                                color={getUserVote(question.id) === 'down' ? 'primary' : 'default'}
+                                onClick={() => handleVote(question.id, 'down')}
+                                disabled={question.isAnswered}
+                              >
+                                <ThumbDownIcon fontSize="small" />
+                              </IconButton>
+                              <Typography variant="body2" sx={{ mx: 1 }}>
+                                {question.votes.down}
+                              </Typography>
 
-                            <Chip
-                              label={`Score: ${question.votes.up - question.votes.down}`}
-                              color={
-                                question.votes.up - question.votes.down > 0 ? 'success' : 'default'
-                              }
-                              size="small"
-                              sx={{ ml: 1 }}
-                            />
+                              <Chip
+                                label={`Score: ${question.votes.up - question.votes.down}`}
+                                color={
+                                  question.votes.up - question.votes.down > 0 ? 'success' : 'default'
+                                }
+                                size="small"
+                                sx={{ ml: 1 }}
+                              />
+                            </Box>
                           </Box>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                </Paper>
-              ))}
+                        }
+                      />
+                    </ListItem>
+                  </Paper>
+                ))}
             </List>
           )}
         </Paper>

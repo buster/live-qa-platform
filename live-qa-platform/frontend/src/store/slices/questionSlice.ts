@@ -115,9 +115,12 @@ const questionSlice = createSlice({
   initialState,
   reducers: {
     setQuestions: (state, action: PayloadAction<Question[]>) => {
+      console.log('setQuestions action called with payload:', action.payload);
       state.questions = action.payload;
     },
     addQuestion: (state, action: PayloadAction<Question>) => {
+      console.log('addQuestion action called with payload:', action.payload);
+      console.log('Question ID in addQuestion:', action.payload.id);
       state.questions.push(action.payload);
     },
     updateQuestion: (state, action: PayloadAction<Question>) => {

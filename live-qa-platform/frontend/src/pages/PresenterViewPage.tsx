@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { joinSession } from '../store/slices/sessionSlice';
 import {
   Container,
   Typography,
@@ -53,30 +54,39 @@ const PresenterViewPage: React.FC = () => {
   const filterAnswered = useSelector((state: RootState) => state.ui.filterAnswered);
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
 
+  // First useEffect to load the session if needed
   useEffect(() => {
     if (!sessionCode) {
       navigate('/');
       return;
     }
 
+    // If session is not loaded (e.g., after page refresh), load it
+    if (!session) {
+      dispatch(joinSession(sessionCode));
+    }
+  }, [sessionCode, navigate, session, dispatch]);
+
+  // Second useEffect to check presenter token and connect to socket
+  useEffect(() => {
+    if (!sessionCode || !session) {
+      return;
+    }
+
     // Check if presenter token exists
-    // We need the actual session ID to retrieve the presenter token
-    // Let's assume the session object is loaded by now, or handle loading state
-    // TODO: Handle case where session is not yet loaded when checking token
-    const presenterToken = session ? localStorage.getItem(`presenter_token_${session.id}`) : null;
-    if (!session || !presenterToken) {
-      // Check session existence too
+    const presenterToken = localStorage.getItem(`presenter_token_${session.id}`);
+    if (!presenterToken) {
       navigate('/');
       return;
     }
 
-    // Connect to socket
+    // Connect to socket only when session is loaded and presenter token exists
     socketService.connect(sessionCode);
 
     return () => {
       socketService.disconnect();
     };
-  }, [sessionCode, navigate, session]); // Add session dependency
+  }, [sessionCode, navigate, session]);
 
   const handleCopyLink = () => {
     if (!session) return;
@@ -214,82 +224,84 @@ const PresenterViewPage: React.FC = () => {
                 </Typography>
               ) : (
                 <List>
-                  {filteredQuestions.map((question) => (
-                    <Paper
-                      key={question.id}
-                      elevation={1}
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                        borderLeft: question.isAnswered ? '4px solid #4caf50' : '4px solid #2196f3',
-                      }}
-                    >
-                      <ListItem
-                        alignItems="flex-start"
-                        secondaryAction={
-                          !question.isAnswered && (
-                            <Button
-                              variant="outlined"
-                              color="success"
-                              startIcon={<CheckIcon />}
-                              onClick={() => handleMarkAnswered(question.id)}
-                            >
-                              Mark Answered
-                            </Button>
-                          )
-                        }
+                  {filteredQuestions
+                    .filter(question => question && question.id)
+                    .map(question => (
+                      <Paper
+                        key={question.id}
+                        elevation={1}
+                        sx={{
+                          mb: 2,
+                          p: 2,
+                          borderLeft: question.isAnswered ? '4px solid #4caf50' : '4px solid #2196f3',
+                        }}
                       >
-                        <ListItemText
-                          primary={
-                            <Typography variant="h6">
-                              {question.text}
-                              {question.isAnswered && (
-                                <Chip
-                                  label="Answered"
-                                  color="success"
-                                  size="small"
-                                  sx={{ ml: 1 }}
-                                />
-                              )}
-                            </Typography>
+                        <ListItem
+                          alignItems="flex-start"
+                          secondaryAction={
+                            !question.isAnswered && (
+                              <Button
+                                variant="outlined"
+                                color="success"
+                                startIcon={<CheckIcon />}
+                                onClick={() => handleMarkAnswered(question.id)}
+                              >
+                                Mark Answered
+                              </Button>
+                            )
                           }
-                          secondary={
-                            <Box sx={{ mt: 1 }}>
-                              <Typography variant="body2" color="text.secondary" component="span">
-                                From: {question.authorName} |{' '}
-                                {new Date(question.createdAt).toLocaleString()}
+                        >
+                          <ListItemText
+                            primary={
+                              <Typography variant="h6">
+                                {question.text}
+                                {question.isAnswered && (
+                                  <Chip
+                                    label="Answered"
+                                    color="success"
+                                    size="small"
+                                    sx={{ ml: 1 }}
+                                  />
+                                )}
                               </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                                <Chip
-                                  icon={<ThumbUpIcon />}
-                                  label={question.votes.up}
-                                  variant="outlined"
-                                  size="small"
-                                  sx={{ mr: 1 }}
-                                />
-                                <Chip
-                                  icon={<ThumbDownIcon />}
-                                  label={question.votes.down}
-                                  variant="outlined"
-                                  size="small"
-                                />
-                                <Chip
-                                  label={`Score: ${question.votes.up - question.votes.down}`}
-                                  color={
-                                    question.votes.up - question.votes.down > 0
-                                      ? 'success'
-                                      : 'default'
-                                  }
-                                  size="small"
-                                  sx={{ ml: 1 }}
-                                />
+                            }
+                            secondary={
+                              <Box sx={{ mt: 1 }}>
+                                <Typography variant="body2" color="text.secondary" component="span">
+                                  From: {question.authorName} |{' '}
+                                  {new Date(question.createdAt).toLocaleString()}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                  <Chip
+                                    icon={<ThumbUpIcon />}
+                                    label={question.votes.up}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ mr: 1 }}
+                                  />
+                                  <Chip
+                                    icon={<ThumbDownIcon />}
+                                    label={question.votes.down}
+                                    variant="outlined"
+                                    size="small"
+                                  />
+                                  <Chip
+                                    label={`Score: ${question.votes.up - question.votes.down}`}
+                                    color={
+                                      question.votes.up - question.votes.down > 0
+                                        ? 'success'
+                                        : 'default'
+                                    }
+                                    size="small"
+                                    sx={{ ml: 1 }}
+                                  />
+                                </Box>
                               </Box>
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                    </Paper>
-                  ))}
+                            }
+                          />
+                        </ListItem>
+                      </Paper>
+                    ))}
                 </List>
               )}
             </Paper>
