@@ -64,6 +64,7 @@ class SocketService {
   private offlineQueue: OfflineAction[] = [];
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isReconnecting = false;
+  private tempQuestionIds: Set<string> = new Set(); // Speichert temporäre Frage-IDs
 
   // Lade gespeicherte Offline-Aktionen aus dem localStorage
   private loadOfflineQueue(): void {
@@ -236,6 +237,13 @@ class SocketService {
 
     // Handle incoming events
     this.socket.on('question:new', (question: Question) => {
+      // Prüfe, ob es sich um eine temporäre Frage handelt, die wir bereits hinzugefügt haben
+      if (this.tempQuestionIds.has(`temp-${question.id}`)) {
+        // Entferne die temporäre ID aus dem Set
+        this.tempQuestionIds.delete(`temp-${question.id}`);
+        return;
+      }
+      
       store.dispatch(addQuestion(question));
     });
 
@@ -278,26 +286,29 @@ class SocketService {
   }
 
   submitQuestion(question: CreateQuestionRequest): void {
-    // Optimistisches Update - füge die Frage lokal hinzu
+    // Generiere eine temporäre ID für die Frage
     const tempId = `temp-${Date.now()}`;
-    const tempQuestion: Question = {
-      id: tempId,
-      sessionId: question.sessionId,
-      text: question.text,
-      authorName: question.authorName,
-      createdAt: new Date().toISOString(),
-      isAnswered: false,
-      media: question.media,
-      votes: { up: 0, down: 0 },
-    };
-    
-    // Füge die temporäre Frage zum Store hinzu
-    store.dispatch(addQuestion(tempQuestion));
     
     if (this.socket && this.socket.connected) {
+      // Im Online-Modus: Sende die Frage direkt an den Server
       console.log('Emitting submit:question data:', question);
       this.socket.emit('submit:question', question);
     } else {
+      // Im Offline-Modus: Füge die Frage lokal hinzu
+      const tempQuestion: Question = {
+        id: tempId,
+        sessionId: question.sessionId,
+        text: question.text,
+        authorName: question.authorName,
+        createdAt: new Date().toISOString(),
+        isAnswered: false,
+        media: question.media,
+        votes: { up: 0, down: 0 },
+      };
+      
+      // Füge die temporäre Frage zum Store hinzu
+      store.dispatch(addQuestion(tempQuestion));
+      
       // Füge zur Offline-Warteschlange hinzu
       this.addToOfflineQueue({
         type: 'submit:question',
