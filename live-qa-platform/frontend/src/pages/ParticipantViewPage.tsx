@@ -39,25 +39,11 @@ const ParticipantViewPage: React.FC = () => {
   const [questionText, setQuestionText] = useState('');
   const [userName, setUserName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [isReconnecting, setIsReconnecting] = useState(false);
 
   const session = useSelector((state: RootState) => state.session.currentSession);
   const questions = useSelector((state: RootState) => state.questions.questions);
   const userVotes = useSelector((state: RootState) => state.questions.userVotes);
   const socketConnected = useSelector((state: RootState) => state.ui.socketConnected);
-
-  // Funktion zum manuellen Wiederverbinden
-  const handleReconnect = () => {
-    if (!sessionCode) return;
-    
-    setIsReconnecting(true);
-    socketService.connect(sessionCode);
-    
-    // Setze den Reconnecting-Status nach 2 Sekunden zurück
-    setTimeout(() => {
-      setIsReconnecting(false);
-    }, 2000);
-  };
 
   useEffect(() => {
     if (!sessionCode) {
@@ -65,16 +51,18 @@ const ParticipantViewPage: React.FC = () => {
       return;
     }
 
-    // Benutzernamen aus dem localStorage laden
+    // Get user name from localStorage
+    // Use sessionCode for the localStorage key as well for consistency,
+    // although using the actual session.id might be more robust if codes could change.
+    // Sticking to sessionCode for now as requested.
     const storedName = localStorage.getItem(`participant_name_${sessionCode}`);
     if (storedName) {
       setUserName(storedName);
     }
 
-    // Mit Socket verbinden
+    // Connect to socket
     socketService.connect(sessionCode);
 
-    // Bereinigungsfunktion
     return () => {
       socketService.disconnect();
     };
@@ -83,11 +71,11 @@ const ParticipantViewPage: React.FC = () => {
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prüfe, ob alle erforderlichen Daten vorhanden sind
+    // Add check for session object
     if (!questionText.trim() || !userName.trim() || !sessionCode || !session) {
       dispatch(
         showSnackbar({
-          message: 'Sessiondaten nicht geladen. Frage kann nicht gesendet werden.',
+          message: 'Session data not loaded. Cannot submit question.',
           severity: 'error',
         }),
       );
@@ -97,40 +85,35 @@ const ParticipantViewPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      // Speichere Namen im localStorage
-      localStorage.setItem(`participant_name_${sessionCode}`, userName);
+      // Name is now read-only, so we don't need to update it in localStorage
 
-      // Bereite Fragedaten vor
+      // Prepare question data
       const questionData = {
+        // We need the actual MongoDB ID to associate the question with the session in the DB
         sessionId: session.id,
         text: questionText,
         authorName: userName,
       };
 
-      console.log('Sende Fragedaten:', questionData);
+      console.log('Submitting question data (ParticipantViewPage):', questionData); // Add logging here
 
-      // Sende Frage über Socket-Service
-      // Der Socket-Service kümmert sich jetzt um Offline-Handling
+      // Submit question via socket
       socketService.submitQuestion(questionData);
 
-      // Leere das Eingabefeld
+      // Clear input
       setQuestionText('');
 
-      // Zeige Erfolgsmeldung nur, wenn verbunden
-      // Bei Offline-Modus zeigt der Socket-Service eine eigene Meldung
-      if (socketConnected) {
-        dispatch(
-          showSnackbar({
-            message: 'Frage erfolgreich gesendet',
-            severity: 'success',
-          }),
-        );
-      }
-    } catch (error) {
-      console.error('Fehler beim Senden der Frage:', error);
       dispatch(
         showSnackbar({
-          message: 'Fehler beim Senden der Frage. Bitte versuche es erneut.',
+          message: 'Question submitted successfully',
+          severity: 'success',
+        }),
+      );
+    } catch (error) {
+      console.error('Failed to submit question:', error);
+      dispatch(
+        showSnackbar({
+          message: 'Failed to submit question. Please try again.',
           severity: 'error',
         }),
       );
@@ -142,7 +125,6 @@ const ParticipantViewPage: React.FC = () => {
   const handleVote = (questionId: string, voteType: 'up' | 'down') => {
     if (!userName || !sessionCode) return;
 
-    // Der Socket-Service kümmert sich jetzt um optimistische Updates und Offline-Handling
     socketService.submitVote({
       questionId,
       voterName: userName,
@@ -177,25 +159,11 @@ const ParticipantViewPage: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Q&A Session
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Chip
-              label={socketConnected ? 'Verbunden' : 'Getrennt'}
-              color={socketConnected ? 'success' : 'error'}
-              size="small"
-              sx={{ mr: 1 }}
-            />
-            {!socketConnected && (
-              <Button
-                size="small"
-                variant="outlined"
-                color="primary"
-                onClick={handleReconnect}
-                disabled={isReconnecting}
-              >
-                {isReconnecting ? 'Verbinde...' : 'Neu verbinden'}
-              </Button>
-            )}
-          </Box>
+          <Chip
+            label={socketConnected ? 'Connected' : 'Disconnected'}
+            color={socketConnected ? 'success' : 'error'}
+            size="small"
+          />
         </Toolbar>
       </AppBar>
 
@@ -207,15 +175,22 @@ const ParticipantViewPage: React.FC = () => {
           <Box component="form" onSubmit={handleSubmitQuestion} noValidate>
             <TextField
               margin="normal"
-              required
               fullWidth
               id="name"
               label="Your Name"
               name="name"
               autoComplete="name"
               value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              disabled={submitting}
+              disabled={true}
+              InputProps={{
+                readOnly: true,
+              }}
+              sx={{
+                "& .MuiInputBase-input.Mui-disabled": {
+                  WebkitTextFillColor: "rgba(0, 0, 0, 0.87)",
+                },
+                bgcolor: 'action.hover'
+              }}
             />
             <TextField
               margin="normal"
@@ -295,7 +270,7 @@ const ParticipantViewPage: React.FC = () => {
                               size="small"
                               color={getUserVote(question.id) === 'up' ? 'primary' : 'default'}
                               onClick={() => {
-                                console.log('Upvote button clicked for question.id:', question.id);
+                                console.log('Upvote button clicked for question.id:', question.id); // Log question.id on click
                                 handleVote(question.id, 'up');
                               }}
                               disabled={question.isAnswered}

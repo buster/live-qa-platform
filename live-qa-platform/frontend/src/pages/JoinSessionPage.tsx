@@ -85,7 +85,8 @@ const JoinSessionPage: React.FC = () => {
       if (joinSession.fulfilled.match(resultAction)) {
         const session = resultAction.payload;
         // Store the user's name in localStorage
-        localStorage.setItem(`participant_name_${session._id}`, name);
+        // Use session.url as the key to match what's used in ParticipantViewPage
+        localStorage.setItem(`participant_name_${session.url}`, name);
         // Connect to WebSocket with the actual session URL/code from the API response
         socketService.connect(session.url);
 
